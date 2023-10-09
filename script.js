@@ -62,10 +62,20 @@ const render = function (data, className = '') {
 
 // getCountryDataAndNeighbour('portugal');
 
-//HOW TO CONSUME A PROMISE, PROMISES AND FETCH API
+//HOW TO CONSUME A PROMISE, PROMISES AND FETCH API, HOW TO CHAIN PROMISSES
 const getCountryData = function (country) {
   fetch(`https://countries-api-836d.onrender.com/countries/name/${country}`)
     .then(response => response.json())
-    .then(data => render(data[0]));
+    .then(data => {
+      render(data[0]);
+
+      const neighbour1 = data[0].borders?.[0];
+
+      return fetch(
+        `https://countries-api-836d.onrender.com/countries/alpha/${neighbour1}`
+      );
+    })
+    .then(response => response.json())
+    .then(data => render(data, 'neighbour'));
 };
 getCountryData('portugal');
