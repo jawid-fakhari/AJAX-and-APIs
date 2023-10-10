@@ -5,7 +5,12 @@ const countriesContainer = document.querySelector('.countries');
 
 ///////////////////////////////////////
 //Render data////////////
-const render = function (data, className = '') {
+const renderError = function (msg) {
+  countriesContainer.insertAdjacentText('beforeend', msg);
+  //countriesContainer.style.opacity = 1;/// used in finaly
+};
+
+const renderCountry = function (data, className = '') {
   const html = `
    <article class="country ${className}">
      <img class="country__img" src="${data.flag}" />
@@ -19,7 +24,7 @@ const render = function (data, className = '') {
    </article>
    `;
   countriesContainer.insertAdjacentHTML('beforeend', html);
-  countriesContainer.style.opacity = 1;
+  //countriesContainer.style.opacity = 1;/// used in finaly
 };
 
 //how to make a new API request///////////////
@@ -61,21 +66,81 @@ const render = function (data, className = '') {
 // };
 
 // getCountryDataAndNeighbour('portugal');
+/////////////////////////////
+// helper function ///////
+const getJson = function (url, errMsg = `Somthing wen wrong`) {
+  return fetch(url).then(response => {
+    //HOW TO HANDLE 404 ERROR
+    if (!response.ok)
+      throw new Error(`Country not found ${errMsg} ${response.status})`);
+    return response.json();
+  });
+};
+////////////////
+// //HOW TO CONSUME A PROMISE, PROMISES AND FETCH API, HOW TO CHAIN PROMISSES
+// const getCountryData = function (country) {
+//   fetch(`https://countries-api-836d.onrender.com/countries/name/${country}`)
+//     .then(response => {
+//       //HOW TO HANDLE 404 ERROR
+//       if (!response.ok)
+//         throw new Error(`Country not found (${response.status})`);
+//       return response.json();
+//     })
+//     .then(data => {
+//       renderCountry(data[0]);
 
+//       const neighbour = data[0].borders?.[0];
+
+//       return fetch(
+//         `https://countries-api-836d.onrender.com/countries/alpha/${neighbour}`
+//       );
+//     })
+//     .then(response => {
+//       if (!response.ok)
+//         throw new Error(`Country not found (${response.status})`);
+
+//       return response.json();
+//     })
+//     .then(data => renderCountry(data, 'neighbour'))
+//     //HOW TO HANDLE ERRORS / catch error
+//     .catch(err => {
+//       console.log(`${err} 💣💣💣`);
+
+//       renderError(`Somthing went wrong 💣💣 ${err.message}. Try again!`);
+//     })
+//     .finally(() => {
+//       countriesContainer.style.opacity = 1;
+//     });
+// };
+///////////////////
 //HOW TO CONSUME A PROMISE, PROMISES AND FETCH API, HOW TO CHAIN PROMISSES
 const getCountryData = function (country) {
-  fetch(`https://countries-api-836d.onrender.com/countries/name/${country}`)
-    .then(response => response.json())
+  getJson(
+    `https://countries-api-836d.onrender.com/countries/name/${country}`,
+    'Country not found'
+  )
     .then(data => {
-      render(data[0]);
+      renderCountry(data[0]);
 
-      const neighbour1 = data[0].borders?.[0];
+      const neighbour = data[0].borders?.[0];
 
-      return fetch(
-        `https://countries-api-836d.onrender.com/countries/alpha/${neighbour1}`
+      if (!neighbour) throw new Error('No neighbour found!');
+
+      return getJson(
+        `https://countries-api-836d.onrender.com/countries/alpha/${neighbour}`,
+        'Country not found'
       );
     })
-    .then(response => response.json())
-    .then(data => render(data, 'neighbour'));
+    .then(data => renderCountry(data, 'neighbour'))
+    //HOW TO HANDLE ERRORS / catch error
+    .catch(err => {
+      renderError(`Somthing went wrong 💣💣 ${err.message}. Try again!`);
+    })
+    .finally(() => {
+      countriesContainer.style.opacity = 1;
+    });
 };
-getCountryData('portugal');
+
+btn.addEventListener('click', function () {
+  getCountryData('japan');
+});
