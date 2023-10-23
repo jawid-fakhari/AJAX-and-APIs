@@ -7,7 +7,7 @@ const imageContainer = document.querySelector('.images');
 //Render data////////////
 const renderError = function (msg) {
   countriesContainer.insertAdjacentText('beforeend', msg);
-  //countriesContainer.style.opacity = 1;/// used in finaly
+  countriesContainer.style.opacity = 1; /// used in finaly
 };
 
 const renderCountry = function (data, className = '') {
@@ -68,6 +68,7 @@ const renderCountry = function (data, className = '') {
 // getCountryDataAndNeighbour('portugal');
 /////////////////////////////
 // helper function ///////
+/*
 const getJson = function (url, errMsg = `Somthing went wrong`) {
   return fetch(url).then(response => {
     //HOW TO HANDLE 404 ERROR
@@ -76,6 +77,7 @@ const getJson = function (url, errMsg = `Somthing went wrong`) {
     return response.json();
   });
 };
+*/
 ////////////////
 /*
 // //HOW TO CONSUME A PROMISE, PROMISES AND FETCH API, HOW TO CHAIN PROMISSES
@@ -292,6 +294,7 @@ TEST DATA: Images in the img folder. Test the error handler by passing a wrong i
 
 GOOD LUCK 😀
 */
+/*
 const img = document.createElement('img');
 const createImage = function (imgPath) {
   return new Promise((resolve, reject) => {
@@ -325,3 +328,37 @@ wait(0)
     return wait(2);
   })
   .catch(err => console.error(err));
+*/
+////////////////////
+//Consuming promises with Async/Await method and use of try{}catch{} ///////////////////
+const getPosition = function () {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject);
+  });
+};
+
+const whereAmI = async function () {
+  try {
+    //Geolocation
+    const pos = await getPosition();
+    const { latitude: lat, longitude: lng } = pos.coords;
+    //reverse geolocation
+    const resGeo = await fetch(`https://geocode.xyz/${lat},${lng}?geoit=json`);
+    if (!resGeo.ok) throw new Error('Problem getting location data');
+    const dataGeo = await resGeo.json();
+    console.log(dataGeo);
+    //Country data
+    const res = await fetch(
+      `https://countries-api-836d.onrender.com/countries/name/${dataGeo.country}`
+    ); // == fetch('url').then(res=>c.log(res))
+    if (!res.ok) throw new Error('Problem getting location data');
+    const data = await res.json(); // == ... responese.json() ).then(data=>{render...})
+    renderCountry(data[0]);
+  } catch (err) {
+    console.log(err);
+    renderError(`erorr error error error ${err.message}`);
+  }
+};
+// whereAmI();
+btn.addEventListener('click', whereAmI);
+console.log('First');
